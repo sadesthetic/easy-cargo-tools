@@ -4,6 +4,7 @@ import { initVolumenView } from './volumenView.js';
 import { initDivisasView } from './divisasView.js';
 import { initAduanasView } from './aduanasView.js';
 import { initFinanzasView } from './finanzasView.js';
+import { initUpdateChecker } from './updateChecker.js';
 
 const TABS = [
   { id: 'cargo', label: 'Carga 3D', icon: Icons.cube, init: initCargoView },
@@ -18,10 +19,10 @@ class App {
     this.currentTab = localStorage.getItem('active_tab') || 'cargo';
     this.mainScroll = document.getElementById('main-scroll');
     this.navContainer = document.getElementById('bottom-nav');
-    this.viewsCache = new Map();
 
     this.renderNav();
     this.switchTab(this.currentTab);
+    initUpdateChecker();
   }
 
   renderNav() {

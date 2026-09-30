@@ -1,10 +1,15 @@
 package com.example.easycargotools
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.ConsoleMessage
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -39,12 +44,34 @@ class MainActivity : ComponentActivity() {
                             domStorageEnabled = true
                             allowFileAccess = true
                             allowContentAccess = true
+                            allowFileAccessFromFileURLs = true
+                            allowUniversalAccessFromFileURLs = true
                             loadWithOverviewMode = true
                             useWideViewPort = true
                             cacheMode = WebSettings.LOAD_DEFAULT
                         }
-                        webViewClient = WebViewClient()
-                        webChromeClient = WebChromeClient()
+
+                        webViewClient = object : WebViewClient() {
+                            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                                val url = request?.url?.toString() ?: return false
+                                if (url.startsWith("http://") || url.startsWith("https://")) {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    context.startActivity(intent)
+                                    return true
+                                }
+                                return false
+                            }
+                        }
+
+                        webChromeClient = object : WebChromeClient() {
+                            override fun onConsoleMessage(message: ConsoleMessage?): Boolean {
+                                message?.let {
+                                    Log.d("WebViewConsole", "${it.message()} [${it.sourceId()}:${it.lineNumber()}]")
+                                }
+                                return true
+                            }
+                        }
+
                         loadUrl("file:///android_asset/index.html")
                         webView = this
                     }
