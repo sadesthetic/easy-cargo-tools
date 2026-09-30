@@ -1,38 +1,34 @@
 import { Icons } from './icons.js';
 
-export const CURRENT_VERSION = 'v1.0.1';
+export const CURRENT_VERSION = 'v1.0.2';
 const REPO = 'sadesthetic/easy-cargo-tools';
 
-export function initUpdateChecker() {
-  const btn = document.getElementById('btn-check-update');
-  if (!btn) return;
+export async function checkUpdates() {
+  const btn = document.getElementById('btn-open-settings');
+  if (btn) btn.classList.add('rotating');
+  try {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    });
+    if (!res.ok) throw new Error('Error al consultar');
+    const data = await res.json();
+    const latestTag = data.tag_name || '';
 
-  btn.addEventListener('click', async () => {
-    btn.classList.add('rotating');
-    try {
-      const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
-        headers: { 'Accept': 'application/vnd.github.v3+json' }
-      });
-      if (!res.ok) throw new Error('Error al consultar');
-      const data = await res.json();
-      const latestTag = data.tag_name || '';
-
-      if (latestTag && latestTag !== CURRENT_VERSION) {
-        const apkAsset = (data.assets || []).find(a => a.name.endsWith('.apk'));
-        const downloadUrl = apkAsset ? apkAsset.browser_download_url : data.html_url;
-        showUpdateDialog(latestTag, downloadUrl);
-      } else {
-        showToast(`Versión ${CURRENT_VERSION} al día`);
-      }
-    } catch (err) {
-      showToast('No se pudo verificar actualización');
-    } finally {
-      btn.classList.remove('rotating');
+    if (latestTag && latestTag !== CURRENT_VERSION) {
+      const apkAsset = (data.assets || []).find(a => a.name.endsWith('.apk'));
+      const downloadUrl = apkAsset ? apkAsset.browser_download_url : data.html_url;
+      showUpdateDialog(latestTag, downloadUrl);
+    } else {
+      showToast(`Versión ${CURRENT_VERSION} al día`);
     }
-  });
+  } catch (err) {
+    showToast('No se pudo verificar actualización');
+  } finally {
+    if (btn) btn.classList.remove('rotating');
+  }
 }
 
-function showToast(msg) {
+export function showToast(msg) {
   let toast = document.getElementById('app-toast');
   if (!toast) {
     toast = document.createElement('div');

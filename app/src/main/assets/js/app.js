@@ -4,7 +4,7 @@ import { initVolumenView } from './volumenView.js';
 import { initDivisasView } from './divisasView.js';
 import { initAduanasView } from './aduanasView.js';
 import { initFinanzasView } from './finanzasView.js';
-import { initUpdateChecker } from './updateChecker.js';
+import { initSettingsModal, applySavedTheme } from './settingsModal.js';
 
 const TABS = [
   { id: 'cargo', label: 'Carga 3D', icon: Icons.cube, init: initCargoView },
@@ -16,13 +16,14 @@ const TABS = [
 
 class App {
   constructor() {
+    applySavedTheme();
     this.currentTab = localStorage.getItem('active_tab') || 'cargo';
     this.mainScroll = document.getElementById('main-scroll');
     this.navContainer = document.getElementById('bottom-nav');
 
     this.renderNav();
     this.switchTab(this.currentTab);
-    initUpdateChecker();
+    initSettingsModal();
   }
 
   renderNav() {

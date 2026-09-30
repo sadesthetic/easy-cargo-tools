@@ -646,3 +646,122 @@ body {
   font-weight: 700;
 }
 
+.brand-logo {
+  display: flex;
+  align-items: center;
+  color: var(--sky);
+}
+
+.pill-btn.icon-only {
+  padding: 7px 8px;
+}
+
+/* Theme Preview & Swatches */
+.theme-preview-box {
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-mini-header {
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background 0.2s, color 0.2s;
+}
+
+.preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.preview-mini-body {
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-pill {
+  padding: 4px 6px;
+  border: 1.5px solid;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.preview-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.swatches-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.swatches-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.color-swatch {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.color-swatch:active {
+  transform: scale(0.92);
+}
+
+.color-swatch.active {
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--sky);
+  transform: scale(1.05);
+}
+
+.settings-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.settings-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.settings-item-btn:active {
+  border-color: var(--sky);
+  color: var(--sky);
+}
+
+
