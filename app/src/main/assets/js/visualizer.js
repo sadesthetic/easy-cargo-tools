@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from './OrbitControls.js';
 
+export const MAX_RENDER_BOXES = 800;
+
 export class CargoVisualizer3D {
   constructor(canvasContainer) {
     this.container = canvasContainer;
     this.scene = new THREE.Scene();
-    this.isWireframe = false;
+    this.renderAll = false;
 
     this.initCamera();
     this.initRenderer();
@@ -13,7 +15,6 @@ export class CargoVisualizer3D {
     this.initControls();
 
     this.packedGroup = new THREE.Group();
-    this.containerMesh = null;
     this.scene.add(this.packedGroup);
 
     this.animate = this.animate.bind(this);
@@ -34,20 +35,18 @@ export class CargoVisualizer3D {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
   }
 
   initLights() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     this.scene.add(ambientLight);
 
     const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight1.position.set(60, 100, 80);
     this.scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.5);
+    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
     dirLight2.position.set(-60, 40, -60);
     this.scene.add(dirLight2);
   }
@@ -59,7 +58,7 @@ export class CargoVisualizer3D {
     this.controls.maxPolarAngle = Math.PI / 2 + 0.1;
   }
 
-  updateScene(containerDim, packingResult, palletMode = false) {
+  updateScene(containerDim, packingResult) {
     while (this.packedGroup.children.length > 0) {
       const obj = this.packedGroup.children[0];
       this.packedGroup.remove(obj);
@@ -82,7 +81,7 @@ export class CargoVisualizer3D {
     contWire.position.set(0, cH / 2, 0);
     this.packedGroup.add(contWire);
 
-    // Subtle floor plane inside container
+    // Subtle floor plane
     const floorGeo = new THREE.PlaneGeometry(cL, cW);
     const floorMat = new THREE.MeshBasicMaterial({ color: 0x0f172a, side: THREE.DoubleSide, opacity: 0.35, transparent: true });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
@@ -90,51 +89,51 @@ export class CargoVisualizer3D {
     floorMesh.position.set(0, 0.01, 0);
     this.packedGroup.add(floorMesh);
 
-    // Optional Pallet
-    let palletOffset = 0;
-    if (palletMode) {
-      palletOffset = 6;
-      const pGeo = new THREE.BoxGeometry(cL, 6, cW);
-      const pMat = new THREE.MeshPhongMaterial({ color: 0xb48a58, transparent: true, opacity: 0.85 });
-      const pMesh = new THREE.Mesh(pGeo, pMat);
-      pMesh.position.set(0, 3, 0);
-      const pEdges = new THREE.EdgesGeometry(pGeo);
-      const pLines = new THREE.LineSegments(pEdges, new THREE.LineBasicMaterial({ color: 0x6e4922, opacity: 0.5, transparent: true }));
-      pMesh.add(pLines);
-      this.packedGroup.add(pMesh);
+    // Materials: Type 1 (Azul), Type 2 (Verde), Type 3 (Naranja)
+    const mat1 = new THREE.MeshPhongMaterial({ color: 0x0284c7, transparent: true, opacity: 0.88 });
+    const mat2 = new THREE.MeshPhongMaterial({ color: 0x10b981, transparent: true, opacity: 0.88 });
+    const mat3 = new THREE.MeshPhongMaterial({ color: 0xf97316, transparent: true, opacity: 0.88 });
+    const edgeDark = new THREE.LineBasicMaterial({ color: 0x082f49, opacity: 0.65, transparent: true });
+
+    const allItems = packingResult.items || [];
+    let renderItems = allItems;
+
+    // Proportional Limiter across all item types
+    if (allItems.length > MAX_RENDER_BOXES && !this.renderAll) {
+      renderItems = [];
+      const total = allItems.length;
+      const byType = {
+        1: allItems.filter(i => i.type === 1),
+        2: allItems.filter(i => i.type === 2),
+        3: allItems.filter(i => i.type === 3)
+      };
+
+      [1, 2, 3].forEach(t => {
+        const list = byType[t];
+        if (list.length > 0) {
+          const quota = Math.max(1, Math.round(MAX_RENDER_BOXES * (list.length / total)));
+          const step = list.length / quota;
+          for (let i = 0; i < quota && i < list.length; i++) {
+            renderItems.push(list[Math.floor(i * step)]);
+          }
+        }
+      });
     }
 
-    // Material definitions
-    const mat1 = new THREE.MeshPhongMaterial({
-      color: 0x0284c7,
-      transparent: true,
-      opacity: this.isWireframe ? 0.35 : 0.88,
-      wireframe: this.isWireframe
-    });
-    const mat2 = new THREE.MeshPhongMaterial({
-      color: 0x10b981,
-      transparent: true,
-      opacity: this.isWireframe ? 0.35 : 0.88,
-      wireframe: this.isWireframe
-    });
-    const edgeDark = new THREE.LineBasicMaterial({ color: 0x082f49, opacity: 0.7, transparent: true });
-
-    const items = packingResult.items || [];
-    items.forEach(it => {
+    renderItems.forEach(it => {
       const geo = new THREE.BoxGeometry(it.origDx, it.origDz, it.origDy);
-      const mesh = new THREE.Mesh(geo, it.type === 2 ? mat2 : mat1);
+      const mat = it.type === 3 ? mat3 : it.type === 2 ? mat2 : mat1;
+      const mesh = new THREE.Mesh(geo, mat);
 
       const posX = it.x + it.origDx / 2 - cL / 2;
-      const posY = it.z + it.origDz / 2 + palletOffset;
+      const posY = it.z + it.origDz / 2;
       const posZ = it.y + it.origDy / 2 - cW / 2;
 
       mesh.position.set(posX, posY, posZ);
 
-      if (!this.isWireframe) {
-        const itemEdges = new THREE.EdgesGeometry(geo);
-        const itemLines = new THREE.LineSegments(itemEdges, edgeDark);
-        mesh.add(itemLines);
-      }
+      const itemEdges = new THREE.EdgesGeometry(geo);
+      const itemLines = new THREE.LineSegments(itemEdges, edgeDark);
+      mesh.add(itemLines);
 
       this.packedGroup.add(mesh);
     });
@@ -148,28 +147,6 @@ export class CargoVisualizer3D {
     this.camera.position.set(dist * 0.9, dist * 0.75, dist * 1.1);
     this.controls.target.set(0, cH / 2, 0);
     this.controls.update();
-  }
-
-  setCameraView(type) {
-    const target = this.controls.target;
-    const dist = this.camera.position.distanceTo(target);
-
-    if (type === 'top') this.camera.position.set(target.x, target.y + dist, target.z + 0.001);
-    else if (type === 'front') this.camera.position.set(target.x, target.y, target.z + dist);
-    else if (type === 'side') this.camera.position.set(target.x + dist, target.y, target.z);
-    else if (type === 'iso') this.camera.position.set(target.x + dist * 0.7, target.y + dist * 0.6, target.z + dist * 0.7);
-
-    this.controls.update();
-  }
-
-  toggleWireframe() {
-    this.isWireframe = !this.isWireframe;
-    this.packedGroup.traverse(child => {
-      if (child.isMesh && child.material) {
-        child.material.wireframe = this.isWireframe;
-        child.material.opacity = this.isWireframe ? 0.35 : 0.88;
-      }
-    });
   }
 
   handleResize() {

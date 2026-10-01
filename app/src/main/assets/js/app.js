@@ -5,13 +5,14 @@ import { initDivisasView } from './divisasView.js';
 import { initAduanasView } from './aduanasView.js';
 import { initFinanzasView } from './finanzasView.js';
 import { initSettingsModal, applySavedTheme } from './settingsModal.js';
+import { t } from './i18n.js';
 
 const TABS = [
-  { id: 'cargo', label: 'Carga 3D', icon: Icons.cube, init: initCargoView },
-  { id: 'volumen', label: 'Volumen', icon: Icons.ruler, init: initVolumenView },
-  { id: 'divisas', label: 'Divisas', icon: Icons.exchange, init: initDivisasView },
-  { id: 'aduanas', label: 'Aduana', icon: Icons.customs, init: initAduanasView },
-  { id: 'finanzas', label: 'Finanzas', icon: Icons.finance, init: initFinanzasView }
+  { id: 'cargo', labelKey: 'tabCargo', icon: Icons.cube, init: initCargoView },
+  { id: 'volumen', labelKey: 'tabVolumen', icon: Icons.ruler, init: initVolumenView },
+  { id: 'divisas', labelKey: 'tabDivisas', icon: Icons.exchange, init: initDivisasView },
+  { id: 'aduanas', labelKey: 'tabAduanas', icon: Icons.customs, init: initAduanasView },
+  { id: 'finanzas', labelKey: 'tabFinanzas', icon: Icons.finance, init: initFinanzasView }
 ];
 
 class App {
@@ -24,13 +25,18 @@ class App {
     this.renderNav();
     this.switchTab(this.currentTab);
     initSettingsModal();
+
+    window.addEventListener('app_language_changed', () => {
+      this.renderNav();
+      this.switchTab(this.currentTab);
+    });
   }
 
   renderNav() {
     this.navContainer.innerHTML = TABS.map(tab => `
       <button class="nav-item ${tab.id === this.currentTab ? 'active' : ''}" data-tab="${tab.id}">
         ${tab.icon}
-        <span class="nav-label">${tab.label}</span>
+        <span class="nav-label">${t(tab.labelKey)}</span>
       </button>
     `).join('');
 

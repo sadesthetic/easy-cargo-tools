@@ -1,6 +1,6 @@
 import { Icons } from './icons.js';
 
-export const CURRENT_VERSION = 'v1.0.2';
+export const CURRENT_VERSION = 'v1.0.3';
 const REPO = 'sadesthetic/easy-cargo-tools';
 
 export async function checkUpdates() {

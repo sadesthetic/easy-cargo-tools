@@ -1,5 +1,6 @@
 import { Icons } from './icons.js';
 import { checkUpdates } from './updateChecker.js';
+import { getLang, setLang, t } from './i18n.js';
 
 const PRIMARY_COLORS = ['#38bdf8', '#10b981', '#a855f7', '#f43f5e', '#f97316'];
 const SECONDARY_COLORS = ['#10b981', '#070b12', '#f1f5f9', '#f59e0b', '#ef4444'];
@@ -38,11 +39,12 @@ function openModal() {
 
   let curP = localStorage.getItem('theme_primary') || '#38bdf8';
   let curS = localStorage.getItem('theme_secondary') || '#10b981';
+  let curLang = getLang();
 
   modal.innerHTML = `
     <div class="modal-card">
       <div class="modal-header">
-        <span class="modal-title">Configuración</span>
+        <span class="modal-title">${t('settings')}</span>
         <button class="icon-btn-sm" id="btn-close-settings">${Icons.close}</button>
       </div>
 
@@ -56,6 +58,12 @@ function openModal() {
           <div class="preview-pill" style="border-color: ${curP}; color: ${curP};">${Icons.craneLogo}</div>
           <div class="preview-bar" style="background: ${curP};"></div>
         </div>
+      </div>
+
+      <!-- Language Selector -->
+      <div class="segmented-control" id="lang-control">
+        <button class="segment-btn ${curLang === 'es' ? 'active' : ''}" data-lang="es">Español</button>
+        <button class="segment-btn ${curLang === 'en' ? 'active' : ''}" data-lang="en">English</button>
       </div>
 
       <!-- Color Pickers (Swatches without text) -->
@@ -76,19 +84,19 @@ function openModal() {
       <div class="settings-actions-list">
         <button class="settings-item-btn" id="act-update">
           ${Icons.refresh}
-          <span>Actualizar</span>
+          <span>${t('updateBtn')}</span>
         </button>
         <button class="settings-item-btn" id="act-donate">
           ${Icons.heart}
-          <span>Donativo</span>
+          <span>${t('donateBtn')}</span>
         </button>
         <button class="settings-item-btn" id="act-review">
           ${Icons.star}
-          <span>Dejar reseña</span>
+          <span>${t('reviewBtn')}</span>
         </button>
         <button class="settings-item-btn" id="act-report">
           ${Icons.alert}
-          <span>Reportar problema</span>
+          <span>${t('reportBtn')}</span>
         </button>
       </div>
     </div>
@@ -109,6 +117,18 @@ function openModal() {
     prevPill.style.color = p;
     prevBar.style.background = p;
   };
+
+  // Language selector
+  modal.querySelectorAll('#lang-control .segment-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      modal.querySelectorAll('#lang-control .segment-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      curLang = btn.dataset.lang;
+      setLang(curLang);
+      window.dispatchEvent(new Event('app_language_changed'));
+      modal.classList.add('hidden');
+    });
+  });
 
   // Primary swatches
   modal.querySelectorAll('#primary-swatches .color-swatch').forEach(btn => {
