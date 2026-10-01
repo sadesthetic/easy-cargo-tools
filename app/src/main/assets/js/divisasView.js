@@ -1,8 +1,16 @@
-export function initDivisasView(containerEl) {
+import { Icons } from './icons.js';
+import { t } from './i18n.js';
+
+export function initDivisasView(containerEl, onBack) {
+  const backBtn = onBack ? `<button class="icon-btn-sm" id="btn-back-calc" style="margin-right: 8px;">${Icons.chevronLeft}</button>` : '';
+
   containerEl.innerHTML = `
     <div class="view-content">
       <div class="view-header">
-        <h2 class="view-title">Arbitraje Cambiario</h2>
+        <div class="header-inline">
+          ${backBtn}
+          <h2 class="view-title">${t('exchangeArbitrage')}</h2>
+        </div>
         <span class="badge-pill bg-sky-soft text-sky" id="badge-saving-pct">0.00%</span>
       </div>
 
@@ -114,6 +122,10 @@ export function initDivisasView(containerEl) {
     labelSpent.textContent = `$${usdNeeded.toFixed(2)} desembolso`;
     labelSaved.textContent = `$${savingUsd.toFixed(2)} ahorro`;
   };
+
+  if (onBack) {
+    containerEl.querySelector('#btn-back-calc')?.addEventListener('click', onBack);
+  }
 
   [inTax, inBank, inStreet].forEach(inp => inp.addEventListener('input', calculate));
   calculate();

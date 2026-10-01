@@ -1,14 +1,26 @@
+import { Icons } from './icons.js';
+import { t } from './i18n.js';
+
 export function initAduanasView(containerEl) {
+  let favorites = [];
+  try {
+    favorites = JSON.parse(localStorage.getItem('aduanas_custom_rates')) || [];
+  } catch (e) {
+    favorites = [];
+  }
+
+  let currentRate = 37;
+
   containerEl.innerHTML = `
     <div class="view-content">
       <div class="view-header">
-        <h2 class="view-title">Impuestos Aduana (CIF)</h2>
+        <h2 class="view-title">${t('customsTitle')}</h2>
         <span class="badge-pill bg-sky-soft text-sky" id="badge-rate">37%</span>
       </div>
 
       <!-- Hero Total Card -->
       <div class="hero-card">
-        <span class="hero-label">Costo Total de Nacionalización</span>
+        <span class="hero-label">${t('nationalizationCost')}</span>
         <div class="hero-value text-sky" id="res-adval-total">$0.00</div>
         <div class="hero-sub" id="res-adval-tax">Arancel: $0.00</div>
 
@@ -26,17 +38,22 @@ export function initAduanasView(containerEl) {
       <!-- Main Inputs -->
       <div class="section-card">
         <div class="input-field mb-3">
-          <label>Valor FOB Mercancía ($ USD)</label>
+          <label>${t('fobValue')}</label>
           <input type="number" id="in-fob" value="15000" step="any">
         </div>
 
-        <!-- Tariff Selector Chips -->
+        <!-- Tariff Selector & Custom Favorites -->
         <div class="mb-3">
-          <label class="input-label-sm">Tasa Arancelaria</label>
-          <div class="segmented-control" id="tariff-control">
-            <button class="segment-btn active" data-rate="37">37%</button>
-            <button class="segment-btn" data-rate="52">52%</button>
-            <button class="segment-btn" data-rate="72">72%</button>
+          <label class="input-label-sm">${t('tariffRate')}</label>
+          <div class="tariff-chips-wrap mt-1" id="tariff-chips-wrap"></div>
+
+          <div class="tariff-custom-row mt-2">
+            <div class="input-field input-compact flex-1">
+              <input type="number" id="in-custom-rate" placeholder="${t('customRate')}" step="any" min="0" max="100">
+            </div>
+            <button class="icon-btn-compact" id="btn-add-fav" title="${t('addFavorite')}">
+              ${Icons.plus}
+            </button>
           </div>
         </div>
 
@@ -46,7 +63,7 @@ export function initAduanasView(containerEl) {
             <label class="toggle-row">
               <input type="checkbox" id="chk-flete" checked>
               <span class="toggle-slider"></span>
-              <span class="subcard-title">Flete Internacional</span>
+              <span class="subcard-title">${t('intlFreight')}</span>
             </label>
           </div>
           <div class="input-field mt-2" id="box-flete">
@@ -59,7 +76,7 @@ export function initAduanasView(containerEl) {
             <label class="toggle-row">
               <input type="checkbox" id="chk-seguro" checked>
               <span class="toggle-slider"></span>
-              <span class="subcard-title">Seguro de Carga (%)</span>
+              <span class="subcard-title">${t('cargoInsurance')}</span>
             </label>
             <span class="metric-sub" id="res-seguro-calc">$0.00</span>
           </div>
@@ -71,29 +88,8 @@ export function initAduanasView(containerEl) {
 
       <!-- Rates Comparison Table -->
       <div class="section-card">
-        <span class="card-title mb-2 block">Comparativa Arancelaria</span>
-        <div class="table-compact">
-          <div class="table-row table-head">
-            <span>Tasa</span>
-            <span>Arancel</span>
-            <span>Total CIF+Tax</span>
-          </div>
-          <div class="table-row" id="row-r-37">
-            <span class="font-bold">37%</span>
-            <span class="tax-cell">$0.00</span>
-            <span class="total-cell text-sky">$0.00</span>
-          </div>
-          <div class="table-row" id="row-r-52">
-            <span class="font-bold">52%</span>
-            <span class="tax-cell">$0.00</span>
-            <span class="total-cell text-sky">$0.00</span>
-          </div>
-          <div class="table-row" id="row-r-72">
-            <span class="font-bold">72%</span>
-            <span class="tax-cell">$0.00</span>
-            <span class="total-cell text-sky">$0.00</span>
-          </div>
-        </div>
+        <span class="card-title mb-2 block">${t('tariffComparison')}</span>
+        <div class="table-compact" id="aduanas-comp-table"></div>
       </div>
 
       <!-- Alternate Cost Real Mode -->
@@ -101,23 +97,21 @@ export function initAduanasView(containerEl) {
         <label class="toggle-row">
           <input type="checkbox" id="chk-alt-calc">
           <span class="toggle-slider"></span>
-          <span class="card-title">Costo Real de Compra</span>
+          <span class="card-title">${t('realPurchaseCost')}</span>
         </label>
         <div id="alt-box" class="mt-3 hidden">
           <div class="input-field mb-2">
-            <label>FOB Real Desembolsado ($)</label>
+            <label>${t('realFobPaid')}</label>
             <input type="number" id="in-alt-fob" value="11000" step="any">
           </div>
           <div class="metric-card bg-slate-900 border-slate-800">
-            <span class="metric-label">Costo Real Integrado</span>
+            <span class="metric-label">${t('realIntegratedCost')}</span>
             <span class="metric-value text-emerald" id="res-alt-total">$0.00</span>
           </div>
         </div>
       </div>
     </div>
   `;
-
-  let currentRate = 37;
 
   const inFob = containerEl.querySelector('#in-fob');
   const chkFlete = containerEl.querySelector('#chk-flete');
@@ -127,6 +121,11 @@ export function initAduanasView(containerEl) {
   const inPctSeguro = containerEl.querySelector('#in-pct-seguro');
   const boxSeguro = containerEl.querySelector('#box-seguro');
   const resSeguroCalc = containerEl.querySelector('#res-seguro-calc');
+
+  const chipsWrap = containerEl.querySelector('#tariff-chips-wrap');
+  const inCustomRate = containerEl.querySelector('#in-custom-rate');
+  const btnAddFav = containerEl.querySelector('#btn-add-fav');
+  const compTable = containerEl.querySelector('#aduanas-comp-table');
 
   const badgeRate = containerEl.querySelector('#badge-rate');
   const resTotal = containerEl.querySelector('#res-adval-total');
@@ -141,6 +140,51 @@ export function initAduanasView(containerEl) {
   const altBox = containerEl.querySelector('#alt-box');
   const inAltFob = containerEl.querySelector('#in-alt-fob');
   const resAltTotal = containerEl.querySelector('#res-alt-total');
+
+  const saveFavorites = () => {
+    localStorage.setItem('aduanas_custom_rates', JSON.stringify(favorites));
+  };
+
+  const renderChips = () => {
+    const defaults = [37, 52, 72];
+    const uniqueRates = [...defaults];
+    favorites.forEach(f => {
+      if (!uniqueRates.includes(f)) uniqueRates.push(f);
+    });
+
+    chipsWrap.innerHTML = uniqueRates.map(r => {
+      const isCustom = !defaults.includes(r);
+      const isActive = currentRate === r;
+      return `
+        <div class="rate-chip ${isActive ? 'active' : ''}" data-rate="${r}">
+          <span class="chip-rate-text">${r}%</span>
+          ${isCustom ? `<span class="chip-rate-del" data-del-rate="${r}">${Icons.close}</span>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    chipsWrap.querySelectorAll('.rate-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        const delBtn = e.target.closest('.chip-rate-del');
+        if (delBtn) {
+          e.stopPropagation();
+          const toDel = parseFloat(delBtn.dataset.delRate);
+          favorites = favorites.filter(f => f !== toDel);
+          saveFavorites();
+          if (currentRate === toDel) currentRate = 37;
+          renderChips();
+          calculate();
+          return;
+        }
+
+        const r = parseFloat(chip.dataset.rate);
+        currentRate = r;
+        inCustomRate.value = '';
+        renderChips();
+        calculate();
+      });
+    });
+  };
 
   const calculate = () => {
     const fob = parseFloat(inFob.value) || 0;
@@ -173,14 +217,32 @@ export function initAduanasView(containerEl) {
     lblFob.textContent = `$${fob.toFixed(0)} FOB`;
     lblTax.textContent = `$${tax.toFixed(0)} Tax`;
 
-    [37, 52, 72].forEach(r => {
-      const row = containerEl.querySelector(`#row-r-${r}`);
-      if (row) {
+    // Table rows
+    const ratesForTable = [37, 52, 72];
+    if (!ratesForTable.includes(currentRate) && currentRate > 0) {
+      ratesForTable.push(currentRate);
+      ratesForTable.sort((a, b) => a - b);
+    }
+
+    compTable.innerHTML = `
+      <div class="table-row table-head">
+        <span>Tasa</span>
+        <span>Arancel</span>
+        <span>Total CIF+Tax</span>
+      </div>
+      ${ratesForTable.map(r => {
         const rowTax = cif * (r / 100);
-        row.querySelector('.tax-cell').textContent = `$${rowTax.toFixed(2)}`;
-        row.querySelector('.total-cell').textContent = `$${(cif + rowTax).toFixed(2)}`;
-      }
-    });
+        const rowTotal = cif + rowTax;
+        const isCurrent = r === currentRate;
+        return `
+          <div class="table-row ${isCurrent ? 'bg-row-active' : ''}">
+            <span class="font-bold ${isCurrent ? 'text-sky' : ''}">${r}%</span>
+            <span class="tax-cell">$${rowTax.toFixed(2)}</span>
+            <span class="total-cell text-sky">$${rowTotal.toFixed(2)}</span>
+          </div>
+        `;
+      }).join('')}
+    `;
 
     if (chkAlt.checked) {
       const altFobVal = parseFloat(inAltFob.value) || 0;
@@ -189,6 +251,30 @@ export function initAduanasView(containerEl) {
       resAltTotal.textContent = `$${altTotal.toFixed(2)}`;
     }
   };
+
+  inCustomRate.addEventListener('input', () => {
+    const val = parseFloat(inCustomRate.value);
+    if (!isNaN(val) && val >= 0) {
+      currentRate = val;
+      chipsWrap.querySelectorAll('.rate-chip').forEach(c => {
+        c.classList.toggle('active', parseFloat(c.dataset.rate) === currentRate);
+      });
+      calculate();
+    }
+  });
+
+  btnAddFav.addEventListener('click', () => {
+    const val = parseFloat(inCustomRate.value) || currentRate;
+    if (val > 0 && ![37, 52, 72].includes(val) && !favorites.includes(val)) {
+      if ('vibrate' in navigator) navigator.vibrate(10);
+      favorites.push(val);
+      favorites.sort((a, b) => a - b);
+      saveFavorites();
+      currentRate = val;
+      renderChips();
+      calculate();
+    }
+  });
 
   [inFob, inFlete, inPctSeguro, inAltFob].forEach(inp => inp.addEventListener('input', calculate));
 
@@ -207,14 +293,6 @@ export function initAduanasView(containerEl) {
     calculate();
   });
 
-  containerEl.querySelectorAll('#tariff-control .segment-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      containerEl.querySelectorAll('#tariff-control .segment-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentRate = parseFloat(btn.dataset.rate) || 37;
-      calculate();
-    });
-  });
-
+  renderChips();
   calculate();
 }

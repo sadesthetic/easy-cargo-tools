@@ -218,6 +218,18 @@ body {
   font-weight: 500;
 }
 
+.card-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* Metrics */
 .metrics-grid {
   display: grid;
@@ -240,6 +252,7 @@ body {
   text-transform: uppercase;
   color: var(--text-muted);
   font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .metric-value {
@@ -252,6 +265,66 @@ body {
   font-size: 10px;
   color: var(--text-muted);
   font-family: monospace;
+}
+
+/* Spacious Metrics */
+.metrics-spacious-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metric-highlight-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.07) 0%, rgba(15, 23, 42, 0.7) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.metric-hero-val {
+  font-size: 26px;
+  font-weight: 800;
+  font-family: monospace;
+  margin-top: 4px;
+}
+
+.metrics-spacious-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.metric-card-spacious {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metric-val-spacious {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--text);
+}
+
+.metric-sub-spacious {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-muted);
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.text-right {
+  text-align: right;
 }
 
 /* Inputs & Form Elements */
@@ -506,13 +579,14 @@ body {
   background: rgba(7, 11, 18, 0.95);
   border-top: 1px solid var(--border);
   backdrop-filter: blur(16px);
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
+  justify-content: space-around;
   padding: 6px 4px calc(env(safe-area-inset-bottom) + 4px);
   z-index: 100;
 }
 
 .nav-item {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -533,6 +607,148 @@ body {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+
+/* Calculator Selector */
+.calc-selector-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.calc-selector-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.calc-selector-card:active {
+  transform: scale(0.985);
+  border-color: var(--sky);
+  background: var(--card-sub);
+}
+
+.calc-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.calc-selector-card#btn-select-finanzas .calc-card-icon {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.calc-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.calc-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calc-card-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.calc-card-arrow {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Tariff Chips & Custom Rate */
+.tariff-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.rate-chip.active {
+  background: var(--sky);
+  border-color: var(--sky);
+  color: #070b12;
+  font-weight: 700;
+}
+
+.chip-rate-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.rate-chip.active .chip-rate-del {
+  color: #070b12;
+}
+
+.tariff-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flex-1 { flex: 1; }
+
+.input-compact input {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.icon-btn-compact {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--card-sub);
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.icon-btn-compact:active {
+  background: var(--sky);
+  color: #070b12;
+}
+
+.bg-row-active {
+  background: rgba(56, 189, 248, 0.08);
 }
 
 /* Utilities */

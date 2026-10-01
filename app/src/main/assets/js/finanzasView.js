@@ -1,8 +1,16 @@
-export function initFinanzasView(containerEl) {
+import { Icons } from './icons.js';
+import { t } from './i18n.js';
+
+export function initFinanzasView(containerEl, onBack) {
+  const backBtn = onBack ? `<button class="icon-btn-sm" id="btn-back-calc" style="margin-right: 8px;">${Icons.chevronLeft}</button>` : '';
+
   containerEl.innerHTML = `
     <div class="view-content">
       <div class="view-header">
-        <h2 class="view-title">Financiamiento & Intereses</h2>
+        <div class="header-inline">
+          ${backBtn}
+          <h2 class="view-title">${t('finTitle')}</h2>
+        </div>
         <span class="badge-pill bg-sky-soft text-sky" id="badge-apy">0.00% APY</span>
       </div>
 
@@ -136,6 +144,10 @@ export function initFinanzasView(containerEl) {
     lblPrincipal.textContent = `$${p.toFixed(0)} Capital`;
     lblInterest.textContent = `$${interestEarned.toFixed(0)} Interés`;
   };
+
+  if (onBack) {
+    containerEl.querySelector('#btn-back-calc')?.addEventListener('click', onBack);
+  }
 
   [inPrincipal, inApr, inTerm].forEach(i => i.addEventListener('input', calculate));
 

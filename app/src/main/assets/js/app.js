@@ -1,24 +1,24 @@
 import { Icons } from './icons.js';
 import { initCargoView } from './cargoView.js';
 import { initVolumenView } from './volumenView.js';
-import { initDivisasView } from './divisasView.js';
+import { initCalculadorasView } from './calculadorasView.js';
 import { initAduanasView } from './aduanasView.js';
-import { initFinanzasView } from './finanzasView.js';
 import { initSettingsModal, applySavedTheme } from './settingsModal.js';
 import { t } from './i18n.js';
 
 const TABS = [
   { id: 'cargo', labelKey: 'tabCargo', icon: Icons.cube, init: initCargoView },
   { id: 'volumen', labelKey: 'tabVolumen', icon: Icons.ruler, init: initVolumenView },
-  { id: 'divisas', labelKey: 'tabDivisas', icon: Icons.exchange, init: initDivisasView },
-  { id: 'aduanas', labelKey: 'tabAduanas', icon: Icons.customs, init: initAduanasView },
-  { id: 'finanzas', labelKey: 'tabFinanzas', icon: Icons.finance, init: initFinanzasView }
+  { id: 'calculadoras', labelKey: 'tabCalculadoras', icon: Icons.calculator, init: initCalculadorasView },
+  { id: 'aduanas', labelKey: 'tabAduanas', icon: Icons.customs, init: initAduanasView }
 ];
 
 class App {
   constructor() {
     applySavedTheme();
-    this.currentTab = localStorage.getItem('active_tab') || 'cargo';
+    let savedTab = localStorage.getItem('active_tab') || 'cargo';
+    if (savedTab === 'divisas' || savedTab === 'finanzas') savedTab = 'calculadoras';
+    this.currentTab = savedTab;
     this.mainScroll = document.getElementById('main-scroll');
     this.navContainer = document.getElementById('bottom-nav');
 
