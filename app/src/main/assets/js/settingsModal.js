@@ -3,20 +3,16 @@ import { checkUpdates } from './updateChecker.js';
 import { getLang, setLang, t } from './i18n.js';
 
 const PRIMARY_COLORS = ['#38bdf8', '#10b981', '#a855f7', '#f43f5e', '#f97316'];
-const SECONDARY_COLORS = ['#10b981', '#070b12', '#f1f5f9', '#f59e0b', '#ef4444'];
 
 export function applySavedTheme() {
   const p = localStorage.getItem('theme_primary') || '#38bdf8';
-  const s = localStorage.getItem('theme_secondary') || '#10b981';
-  setThemeColors(p, s);
+  setThemePrimary(p);
 }
 
-function setThemeColors(primary, secondary) {
+function setThemePrimary(primary) {
   document.documentElement.style.setProperty('--sky', primary);
   document.documentElement.style.setProperty('--sky-soft', primary + '20');
-  document.documentElement.style.setProperty('--theme-secondary', secondary);
   localStorage.setItem('theme_primary', primary);
-  localStorage.setItem('theme_secondary', secondary);
 }
 
 export function initSettingsModal() {
@@ -38,7 +34,6 @@ function openModal() {
   }
 
   let curP = localStorage.getItem('theme_primary') || '#38bdf8';
-  let curS = localStorage.getItem('theme_secondary') || '#10b981';
   let curLang = getLang();
 
   modal.innerHTML = `
@@ -50,7 +45,7 @@ function openModal() {
 
       <!-- Live Mini Preview -->
       <div class="theme-preview-box" id="theme-preview">
-        <div class="preview-mini-header" style="background: ${curS === '#070b12' ? '#0f172a' : curS}; color: ${curS === '#f1f5f9' ? '#070b12' : '#ffffff'};">
+        <div class="preview-mini-header">
           <span class="preview-dot" style="background: ${curP};"></span>
           <span class="preview-title">EasyCargo</span>
         </div>
@@ -66,16 +61,11 @@ function openModal() {
         <button class="segment-btn ${curLang === 'en' ? 'active' : ''}" data-lang="en">English</button>
       </div>
 
-      <!-- Color Pickers (Swatches without text) -->
+      <!-- Primary Color Pickers -->
       <div class="swatches-section">
         <div class="swatches-row" id="primary-swatches">
           ${PRIMARY_COLORS.map(c => `
             <button class="color-swatch ${c === curP ? 'active' : ''}" data-color="${c}" style="background: ${c};"></button>
-          `).join('')}
-        </div>
-        <div class="swatches-row" id="secondary-swatches">
-          ${SECONDARY_COLORS.map(c => `
-            <button class="color-swatch ${c === curS ? 'active' : ''}" data-color="${c}" style="background: ${c}; ${c === '#070b12' ? 'border: 1px solid #334155;' : ''}"></button>
           `).join('')}
         </div>
       </div>
@@ -104,14 +94,11 @@ function openModal() {
 
   modal.classList.remove('hidden');
 
-  const updatePreview = (p, s) => {
-    const prevHeader = modal.querySelector('.preview-mini-header');
+  const updatePreview = (p) => {
     const prevDot = modal.querySelector('.preview-dot');
     const prevPill = modal.querySelector('.preview-pill');
     const prevBar = modal.querySelector('.preview-bar');
 
-    prevHeader.style.background = s === '#070b12' ? '#0f172a' : s;
-    prevHeader.style.color = s === '#f1f5f9' ? '#070b12' : '#ffffff';
     prevDot.style.background = p;
     prevPill.style.borderColor = p;
     prevPill.style.color = p;
@@ -136,19 +123,8 @@ function openModal() {
       modal.querySelectorAll('#primary-swatches .color-swatch').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       curP = btn.dataset.color;
-      setThemeColors(curP, curS);
-      updatePreview(curP, curS);
-    });
-  });
-
-  // Secondary swatches
-  modal.querySelectorAll('#secondary-swatches .color-swatch').forEach(btn => {
-    btn.addEventListener('click', () => {
-      modal.querySelectorAll('#secondary-swatches .color-swatch').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      curS = btn.dataset.color;
-      setThemeColors(curP, curS);
-      updatePreview(curP, curS);
+      setThemePrimary(curP);
+      updatePreview(curP);
     });
   });
 
