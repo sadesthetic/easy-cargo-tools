@@ -683,16 +683,21 @@ body {
 .rate-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   background: var(--card-sub);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 6px 14px;
+  padding: 6px 16px;
   font-size: 13px;
   font-weight: 600;
+  font-family: monospace;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
+}
+
+.rate-chip:active {
+  transform: scale(0.96);
 }
 
 .rate-chip.active {
@@ -700,19 +705,6 @@ body {
   border-color: var(--sky);
   color: #070b12;
   font-weight: 700;
-}
-
-.chip-rate-del {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 2px;
-  opacity: 0.7;
-  cursor: pointer;
-}
-
-.rate-chip.active .chip-rate-del {
-  color: #070b12;
 }
 
 .tariff-custom-row {

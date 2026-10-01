@@ -9,13 +9,13 @@ export function initAduanasView(containerEl) {
     favorites = [];
   }
 
-  let currentRate = 37;
+  let currentRate = favorites.length > 0 ? favorites[0] : 0;
 
   containerEl.innerHTML = `
     <div class="view-content">
       <div class="view-header">
         <h2 class="view-title">${t('customsTitle')}</h2>
-        <span class="badge-pill bg-sky-soft text-sky" id="badge-rate">37%</span>
+        <span class="badge-pill bg-sky-soft text-sky" id="badge-rate">0%</span>
       </div>
 
       <!-- Hero Total Card -->
@@ -42,10 +42,15 @@ export function initAduanasView(containerEl) {
           <input type="number" id="in-fob" value="15000" step="any">
         </div>
 
-        <!-- Tariff Selector & Custom Favorites -->
+        <!-- Tariff Selector & Custom Rates -->
         <div class="mb-3">
-          <label class="input-label-sm">${t('tariffRate')}</label>
-          <div class="tariff-chips-wrap mt-1" id="tariff-chips-wrap"></div>
+          <div class="card-header mb-1">
+            <label class="input-label-sm">${t('tariffRate')}</label>
+            <button class="icon-btn-sm" id="btn-del-fav" title="Eliminar">
+              ${Icons.close}
+            </button>
+          </div>
+          <div class="tariff-chips-wrap" id="tariff-chips-wrap"></div>
 
           <div class="tariff-custom-row mt-2">
             <div class="input-field input-compact flex-1">
@@ -125,6 +130,7 @@ export function initAduanasView(containerEl) {
   const chipsWrap = containerEl.querySelector('#tariff-chips-wrap');
   const inCustomRate = containerEl.querySelector('#in-custom-rate');
   const btnAddFav = containerEl.querySelector('#btn-add-fav');
+  const btnDelFav = containerEl.querySelector('#btn-del-fav');
   const compTable = containerEl.querySelector('#aduanas-comp-table');
 
   const badgeRate = containerEl.querySelector('#badge-rate');
@@ -146,37 +152,17 @@ export function initAduanasView(containerEl) {
   };
 
   const renderChips = () => {
-    const defaults = [37, 52, 72];
-    const uniqueRates = [...defaults];
-    favorites.forEach(f => {
-      if (!uniqueRates.includes(f)) uniqueRates.push(f);
-    });
-
-    chipsWrap.innerHTML = uniqueRates.map(r => {
-      const isCustom = !defaults.includes(r);
+    chipsWrap.innerHTML = favorites.map(r => {
       const isActive = currentRate === r;
-      return `
-        <div class="rate-chip ${isActive ? 'active' : ''}" data-rate="${r}">
-          <span class="chip-rate-text">${r}%</span>
-          ${isCustom ? `<span class="chip-rate-del" data-del-rate="${r}">${Icons.close}</span>` : ''}
-        </div>
-      `;
+      return `<button class="rate-chip ${isActive ? 'active' : ''}" data-rate="${r}">${r}%</button>`;
     }).join('');
 
-    chipsWrap.querySelectorAll('.rate-chip').forEach(chip => {
-      chip.addEventListener('click', (e) => {
-        const delBtn = e.target.closest('.chip-rate-del');
-        if (delBtn) {
-          e.stopPropagation();
-          const toDel = parseFloat(delBtn.dataset.delRate);
-          favorites = favorites.filter(f => f !== toDel);
-          saveFavorites();
-          if (currentRate === toDel) currentRate = 37;
-          renderChips();
-          calculate();
-          return;
-        }
+    const canDelete = favorites.includes(currentRate);
+    btnDelFav.style.opacity = canDelete ? '1' : '0.3';
+    btnDelFav.style.pointerEvents = canDelete ? 'auto' : 'none';
 
+    chipsWrap.querySelectorAll('.rate-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
         const r = parseFloat(chip.dataset.rate);
         currentRate = r;
         inCustomRate.value = '';
@@ -208,9 +194,9 @@ export function initAduanasView(containerEl) {
     resTotal.textContent = `$${total.toFixed(2)}`;
     resTax.textContent = `CIF: $${cif.toFixed(2)} | Arancel: $${tax.toFixed(2)}`;
 
-    const pctF = (fob / total) * 100;
-    const pctL = ((flete + seguro) / total) * 100;
-    const pctT = (tax / total) * 100;
+    const pctF = total > 0 ? (fob / total) * 100 : 0;
+    const pctL = total > 0 ? ((flete + seguro) / total) * 100 : 0;
+    const pctT = total > 0 ? (tax / total) * 100 : 0;
     barFob.style.width = `${pctF}%`;
     barLogistics.style.width = `${pctL}%`;
     barTax.style.width = `${pctT}%`;
@@ -218,11 +204,13 @@ export function initAduanasView(containerEl) {
     lblTax.textContent = `$${tax.toFixed(0)} Tax`;
 
     // Table rows
-    const ratesForTable = [37, 52, 72];
+    const ratesForTable = [...favorites];
     if (!ratesForTable.includes(currentRate) && currentRate > 0) {
       ratesForTable.push(currentRate);
       ratesForTable.sort((a, b) => a - b);
     }
+
+    if (ratesForTable.length === 0) ratesForTable.push(currentRate);
 
     compTable.innerHTML = `
       <div class="table-row table-head">
@@ -256,21 +244,31 @@ export function initAduanasView(containerEl) {
     const val = parseFloat(inCustomRate.value);
     if (!isNaN(val) && val >= 0) {
       currentRate = val;
-      chipsWrap.querySelectorAll('.rate-chip').forEach(c => {
-        c.classList.toggle('active', parseFloat(c.dataset.rate) === currentRate);
-      });
+      renderChips();
       calculate();
     }
   });
 
   btnAddFav.addEventListener('click', () => {
     const val = parseFloat(inCustomRate.value) || currentRate;
-    if (val > 0 && ![37, 52, 72].includes(val) && !favorites.includes(val)) {
+    if (val >= 0 && !favorites.includes(val)) {
       if ('vibrate' in navigator) navigator.vibrate(10);
       favorites.push(val);
       favorites.sort((a, b) => a - b);
       saveFavorites();
       currentRate = val;
+      inCustomRate.value = '';
+      renderChips();
+      calculate();
+    }
+  });
+
+  btnDelFav.addEventListener('click', () => {
+    if (favorites.includes(currentRate)) {
+      if ('vibrate' in navigator) navigator.vibrate(10);
+      favorites = favorites.filter(f => f !== currentRate);
+      saveFavorites();
+      currentRate = favorites.length > 0 ? favorites[0] : 0;
       renderChips();
       calculate();
     }
